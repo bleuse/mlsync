@@ -73,13 +73,3 @@ class Sympa
 	private :check_response
 end
 
-if File.identical?(__FILE__, $0)
-	sympa_gresille = Sympa.new('https://listes.gresille.org/sympa/wsdl')
-	sympa_gresille.login(login='raphael@bleuse.net', passwd='6WrynFefjot')
-
-	#sympa_gresille.info(listname='esmug-gucem-discussion')
-
-	esmug_gucem_mails = sympa_gresille.review(listname='esmug-gucem')
-	puts esmug_gucem_mails
-end
-

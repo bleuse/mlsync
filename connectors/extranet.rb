@@ -117,10 +117,3 @@ class Extranet
 	end
 end
 
-if File.identical?(__FILE__, $0)
-	extranet_ffcam = Extranet.new(url='https://extranet-clubalpin.com', year=2015)
-	extranet_ffcam.login(login='3801_0011', passwd='MjjjNeBd')
-	puts extranet_ffcam.members()
-	puts extranet_ffcam.review('esmug-gucem')
-end
-
