@@ -45,11 +45,9 @@ def synchronize(listname)
 
 	# add missing emails to sympa
 	new_emails = ffcam_emails - gresille_emails - gresille_signoff
-=begin
 	new_emails.each do |email|
 		sympa_gresille.add(listname=listname, email=email)
 	end
-=end
 
 	# summarize actions header
 	puts '=' * 80
