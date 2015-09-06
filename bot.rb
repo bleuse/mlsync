@@ -20,7 +20,7 @@ ffcam_mlo = extranet_ffcam.review('esmug-gucem')
 ffcam_mld = extranet_ffcam.review('esmug-gucem-discussion')
 
 # Gresille sympa
-sympa_gresille = Sympa.new($gresille_wsdl)
+sympa_gresille = Sympa.new($gresille_url)
 sympa_gresille.login(login=$gresille_login, passwd=$gresille_passwd)
 
 gresille_mlo = sympa_gresille.review(listname='esmug-gucem')
