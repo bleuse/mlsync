@@ -6,52 +6,79 @@ require './connectors/extranet'
 require './credentials.rb' # configuration & credentials defined there
 
 
-##################
-# Data retrieval #
+# Authentication #
 ##################
 
 # FFCAM extranet
-extranet_ffcam = Extranet.new(url=$ffcam_url, year=$ffcam_year)
-extranet_ffcam.login(login=$ffcam_login, passwd=$ffcam_passwd)
-
-ffcam_members = extranet_ffcam.members()
-ffcam_members_by_id = Hash[ffcam_members.map {|h| [h[:id], h]}] if ffcam_members
-ffcam_mlo = extranet_ffcam.review('esmug-gucem')
-ffcam_mld = extranet_ffcam.review('esmug-gucem-discussion')
+$extranet_ffcam = Extranet.new(url=$ffcam_url, year=$ffcam_year)
+$extranet_ffcam.login(login=$ffcam_login, passwd=$ffcam_passwd)
 
 # Gresille sympa
-sympa_gresille = Sympa.new($gresille_wsdl)
-sympa_gresille.login(login=$gresille_login, passwd=$gresille_passwd)
+$sympa_gresille = Sympa.new($gresille_url)
+$sympa_gresille.login(login=$gresille_login, passwd=$gresille_passwd)
 
-gresille_mlo = sympa_gresille.review(listname='esmug-gucem')
-gresille_mld = sympa_gresille.review(listname='esmug-gucem-discussion')
 
-################################
+# Common data retrieval #
+#########################
+
+$ffcam_members = $extranet_ffcam.members()
+$ffcam_members_by_id =
+	Hash[$ffcam_members.map {|h| [h[:id], h]}] if $ffcam_members
+
+
 # Mailing list synchronization #
 ################################
 
-# Offical mailing list
-ffcam_mlo = ffcam_mlo.map{|id| ffcam_members_by_id[id][:email]}.compact
-new_mlo_users = ffcam_mlo - gresille_mlo
+def synchronize(listname)
+	# get list's subscribers from extranet
+	ffcam_emails = $extranet_ffcam.review(listname)
+	ffcam_emails.map!{|id| $ffcam_members_by_id[id][:email]}
+	ffcam_emails.compact!
 
-new_mlo_users.each do |user|
-	sympa_gresille.add(listname='esmug-gucem', email=user)
+	# get list's known emails
+	gresille_emails = $sympa_gresille.review(listname)
+
+	# get list's known removed emails (by admin or byuser itself)
+	gresille_signoff = $sympa_gresille.dump_logs(listname)
+	gresille_signoff.select!{|row| [:del, :signoff].include? row[:action]}
+	gresille_signoff.map!{|row| row[:email]}
+
+	# add missing emails to sympa
+	new_emails = ffcam_emails - gresille_emails - gresille_signoff
+=begin
+	new_emails.each do |email|
+		sympa_gresille.add(listname=listname, email=email)
+	end
+=end
+
+	# summarize actions header
+	puts '=' * 80
+	puts "\" #{listname}"
+	puts '=' * 80
+
+	# summarize adds
+	if not new_emails.empty?
+		puts '" new users:'
+		puts '-' * 40
+		puts new_emails
+	else
+		puts '" no new users'
+		puts '-' * 40
+	end
+
+	# warn signed-off ffcam users incoherences (database sync issue)
+	warn_emails = ffcam_emails & gresille_signoff
+	if not warn_emails.empty?
+		puts
+		puts '!!!!!    SIGNED-OFF FFCAM USERS    !!!!!'
+		puts '-' * 40
+		puts warn_emails
+	end
+
 end
 
-puts '=' * 80
-puts '" MLO new users'
-puts '=' * 80
-puts new_mlo_users
-
-# Discussion mailing list
-ffcam_mld = ffcam_mld.map{|id| ffcam_members_by_id[id][:email]}.compact
-new_mld_users = ffcam_mld - gresille_mld
-
-new_mld_users.each do |user|
-	sympa_gresille.add(listname='esmug-gucem-discussion', email=user)
+mailing_lists = ['esmug-gucem', 'esmug-gucem-discussion']
+mailing_lists.each do |listname|
+	synchronize(listname)
+	puts
 end
-
-puts '=' * 80
-puts '" MLD new users'
-puts '=' * 80
-puts new_mld_users
