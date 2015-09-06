@@ -2,8 +2,11 @@
 # encoding: utf-8
 
 
+require 'httpi'
+require 'nokogiri'
 require 'savon' # SOAP abstraction gem
 
+require_relative 'helper.rb'
 
 class Sympa
 	extend Savon::Model
@@ -12,19 +15,17 @@ class Sympa
 	class SympaError < StandardError; end
 
 
-	def initialize(wsdl)
+	def initialize(base_url, wsdl='wsdl')
 		self.class.client(
-			wsdl: wsdl,
+			wsdl: base_url + '/' + wsdl,
 			namespace: 'urn:sympasoap',
 			raise_errors: false
 		)
+		@base_url = base_url
 		@session = nil
 	end
 
 	operations :add, :info, :login, :review
-=begin
-	operations :add, :am_i, :authenticate_and_run, :authenticate_remote_app_and_run, :cas_login, :check_cookie, :close_list, :complex_lists, :complex_which, :create_list, :del, :get_user_email_by_cookie, :info, :lists, :login, :review, :signoff, :subscribe, :which
-=end
 
 	def add(listname, email, gecos=nil, quiet=false)
 		response = super(
@@ -63,6 +64,52 @@ class Sympa
 		)
 		check_response response
 		return response.body[:review_response][:return][:item]
+	end
+
+	def dump_logs(listname)
+		request = HTTPI::Request.new
+		request.url = @base_url
+		request.set_cookies(@session)
+		request.body = {
+			list: listname,
+			action: 'viewlogs',
+			target_type: 'target_email',
+		}
+
+		response = HTTPI::post(request)
+		html_doc = Nokogiri::HTML(response.body)
+
+		# parsing of logs is hardcoded here, maybe there is a better
+		# way to do it… hackish?
+		_columns = [
+			[:date,    'td[1]/text()'],
+			[:action,  'td[3]/text()'],
+			[:params,  'td[4]/text()'],
+			[:email,   'td[5]/text()'], # target mail address
+			[:msgid,   'td[6]/text()'],
+			[:status,  'td[7]/text()'],
+			[:errtype, 'td[8]/text()'],
+			[:user,    'td[9]/text()'], # origin of the action
+			[:ip,      'td[10]/text()']
+		]
+
+		log_table =
+			html_doc.xpath('//table[@summary="logs table"]/tr')
+		logs = log_table.map do |row|
+			detail = {}
+			_columns.each do |name, xpath|
+				value = row.at(xpath).to_s.strip
+				detail[name] = value unless value.empty?
+			end
+			detail unless detail.empty?
+		end
+		logs.compact!
+		logs.map do |row|
+			row[:date] = parse_date(row[:date]) if row[:date]
+			row[:action] = row[:action].to_sym if row[:action]
+		end
+
+		return logs
 	end
 
 	def check_response(response)
