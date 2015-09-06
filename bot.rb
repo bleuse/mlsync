@@ -1,9 +1,9 @@
 #! /usr/bin/env ruby
 # encoding: utf-8
 
-require './connectors/sympa'
-require './connectors/extranet'
-require './credentials.rb' # configuration & credentials defined there
+require_relative 'connectors/sympa'
+require_relative 'connectors/extranet'
+require_relative 'credentials.rb' # configuration & credentials defined there
 
 
 # Authentication #
