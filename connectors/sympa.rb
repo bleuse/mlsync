@@ -6,6 +6,7 @@ require 'httpi'
 require 'nokogiri'
 require 'savon' # SOAP abstraction gem
 
+require_relative 'helper.rb'
 
 class Sympa
 	extend Savon::Model
@@ -104,6 +105,7 @@ class Sympa
 		end
 		logs.compact!
 		logs.map do |row|
+			row[:date] = parse_date(row[:date]) if row[:date]
 			row[:action] = row[:action].to_sym if row[:action]
 		end
 
