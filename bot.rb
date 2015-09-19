@@ -38,10 +38,8 @@ def synchronize(listname)
 	# get list's known emails
 	gresille_emails = $sympa_gresille.review(listname)
 
-	# get list's known removed emails (by admin or byuser itself)
-	gresille_signoff = $sympa_gresille.dump_logs(listname)
-	gresille_signoff.select!{|row| [:del, :signoff].include? row[:action]}
-	gresille_signoff.map!{|row| row[:email]}
+	# get list's known removed emails (by admin or by user itself)
+	gresille_signoff = $sympa_gresille.get_signoff(listname)
 
 	# add missing emails to sympa
 	new_emails = ffcam_emails - gresille_emails - gresille_signoff

@@ -112,6 +112,14 @@ class Sympa
 		return logs
 	end
 
+	def get_signoff(listname)
+		signoff = dump_logs(listname)
+		signoff.select!{|row| [:del, :signoff].include? row[:action]}
+		signoff.map!{|row| row[:email]}
+
+		return signoff
+	end
+
 	def check_response(response)
 		if response.body.key?(:fault)
 			raise SympaError, response.body[:fault][:faultstring]
