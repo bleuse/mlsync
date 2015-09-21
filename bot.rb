@@ -1,6 +1,7 @@
 #! /usr/bin/env ruby
 # encoding: utf-8
 
+
 require_relative 'connectors/sympa'
 require_relative 'connectors/extranet'
 require_relative 'credentials.rb' # configuration & credentials defined there
@@ -18,22 +19,12 @@ $sympa_gresille = Sympa.new($gresille_url)
 $sympa_gresille.login(login=$gresille_login, passwd=$gresille_passwd)
 
 
-# Common data retrieval #
-#########################
-
-$ffcam_members = $extranet_ffcam.members()
-$ffcam_members_by_id =
-	Hash[$ffcam_members.map {|h| [h[:id], h]}] if $ffcam_members
-
-
 # Mailing list synchronization #
 ################################
 
 def synchronize(listname)
 	# get list's subscribers from extranet
 	ffcam_emails = $extranet_ffcam.review(listname)
-	ffcam_emails.map!{|id| $ffcam_members_by_id[id][:email]}
-	ffcam_emails.compact!
 
 	# get list's known emails
 	gresille_emails = $sympa_gresille.review(listname)
@@ -72,6 +63,7 @@ def synchronize(listname)
 	end
 
 end
+
 
 mailing_lists = ['esmug-gucem', 'esmug-gucem-discussion']
 mailing_lists.each do |listname|

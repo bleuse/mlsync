@@ -8,6 +8,7 @@ require 'savon' # SOAP abstraction gem
 
 require_relative 'helper.rb'
 
+
 class Sympa
 	extend Savon::Model
 
@@ -25,7 +26,9 @@ class Sympa
 		@session = nil
 	end
 
+
 	operations :add, :info, :login, :review
+
 
 	def add(listname, email, gecos=nil, quiet=false)
 		response = super(
@@ -40,6 +43,7 @@ class Sympa
 		check_response response
 	end
 
+
 	def info(listname)
 		response = super(
 			message: {listname: listname},
@@ -49,6 +53,7 @@ class Sympa
 		return response.body[:info_response].values[0]
 	end
 
+
 	def login(login, passwd)
 		response = super(message: {email: login, password: passwd})
 		check_response response
@@ -56,6 +61,7 @@ class Sympa
 			response.http.headers['set-cookie2']
 		)
 	end
+
 
 	def review(listname)
 		response = super(
@@ -65,6 +71,7 @@ class Sympa
 		check_response response
 		return response.body[:review_response][:return][:item]
 	end
+
 
 	def dump_logs(listname)
 		request = HTTPI::Request.new
@@ -112,6 +119,7 @@ class Sympa
 		return logs
 	end
 
+
 	def get_signoff(listname)
 		signoff = dump_logs(listname)
 		signoff.select!{|row| [:del, :signoff].include? row[:action]}
@@ -119,6 +127,7 @@ class Sympa
 
 		return signoff
 	end
+
 
 	def check_response(response)
 		if response.body.key?(:fault)

@@ -1,6 +1,7 @@
 #! /usr/bin/env ruby
 # encoding: utf-8
 
+
 require 'date'
 
 
@@ -30,3 +31,13 @@ def parse_date(date)
 
 	return DateTime.strptime(date, '%d %b %Y %H:%M:%S')
 end
+
+
+class ExtranetDateParser
+	def self.convert(value)
+		return DateTime.strptime(value, '%Y-%m-%d')
+	rescue ArgumentError
+		return nil
+	end
+end
+
