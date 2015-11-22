@@ -7,7 +7,8 @@ require 'nokogiri'
 require 'smarter_csv'
 require 'tempfile'
 
-require_relative 'helper.rb'
+require_relative 'helper'
+require_relative '../helpers/patches/hash'
 
 
 class Extranet
@@ -102,6 +103,29 @@ class Extranet
 		list_emails = dump_members()
 		list_emails.map! do |row|
 			row[:email] if row.key?(_list_symbs[listname])
+		end
+		list_emails.compact!
+
+		return list_emails
+	end
+
+
+	def review2(listname)
+		# map listname to key symbol in hash returned by dump_members
+		_list_symbs = {
+			'esmug-gucem' => :signon_mlo,
+			'esmug-gucem-discussion' => :signon_mld
+		}
+		if not _list_symbs.key?(listname)
+			raise ExtranetError, 'Unknown list: ' + listname
+		end
+		_list_key = _list_symbs[listname]
+
+		# format response
+		list_emails = dump_members()
+		list_emails.map! do |row|
+			row[:date] = row.delete(_list_key)
+			row.slice(:id, :email, :date) if row[:date]
 		end
 		list_emails.compact!
 

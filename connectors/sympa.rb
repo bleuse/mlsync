@@ -7,6 +7,7 @@ require 'nokogiri'
 require 'savon' # SOAP abstraction gem
 
 require_relative 'helper.rb'
+require_relative '../helpers/patches/hash'
 
 
 class Sympa
@@ -126,6 +127,18 @@ class Sympa
 		signoff.map!{|row| row[:email]}
 
 		return signoff
+	end
+
+
+	def get_signoff2(listname)
+		raw_logs = dump_logs(listname)
+		valid_after = raw_logs.min{|a,b| a[:date] <=> b[:date]}[:date]
+		off = raw_logs.select do |row|
+			[:del, :signoff].include? row[:action]
+		end
+		off.map!{|row| row.slice(:email, :date)}
+
+		return {valid_after: valid_after, off: off}
 	end
 
 
