@@ -22,7 +22,7 @@ def synchronize(listname)
 	#---------------------------------
 
 	# retrieve subscription request & sign-off event
-	ffcam_request = $extranet_ffcam.review2(listname)
+	ffcam_request = $extranet_ffcam.review(listname)
 	gresille_signoff = $sympa_gresille.get_signoff2(listname)
 
 	# drop subscription requests older than the log of sign-off span (we do
@@ -71,7 +71,7 @@ def synchronize(listname)
 	if not new_emails.empty?
 		puts '" new users:'
 		new_emails.each do |email|
-			$sympa_gresille.add(listname=listname, email=email)
+#			$sympa_gresille.add(listname=listname, email=email)
 			puts email
 		end
 	else

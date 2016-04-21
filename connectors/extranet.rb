@@ -98,27 +98,6 @@ class Extranet
 		if not _list_symbs.key?(listname)
 			raise ExtranetError, 'Unknown list: ' + listname
 		end
-
-		# format response
-		list_emails = dump_members()
-		list_emails.map! do |row|
-			row[:email] if row.key?(_list_symbs[listname])
-		end
-		list_emails.compact!
-
-		return list_emails
-	end
-
-
-	def review2(listname)
-		# map listname to key symbol in hash returned by dump_members
-		_list_symbs = {
-			'esmug-gucem' => :signon_mlo,
-			'esmug-gucem-discussion' => :signon_mld
-		}
-		if not _list_symbs.key?(listname)
-			raise ExtranetError, 'Unknown list: ' + listname
-		end
 		_list_key = _list_symbs[listname]
 
 		# format response
