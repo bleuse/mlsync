@@ -132,15 +132,6 @@ class Sympa
 
 
 	def get_signoff(listname)
-		signoff = dump_logs(listname)
-		signoff.select!{|row| [:del, :signoff].include? row[:action]}
-		signoff.map!{|row| row[:email]}
-
-		return signoff
-	end
-
-
-	def get_signoff2(listname)
 		raw_logs = dump_logs(listname)
 		valid_after = raw_logs.min{|a,b| a[:date] <=> b[:date]}[:date]
 		off = raw_logs.select do |row|

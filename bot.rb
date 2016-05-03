@@ -23,7 +23,7 @@ def synchronize(listname)
 
 	# retrieve subscription request & sign-off event
 	ffcam_request = $extranet_ffcam.review(listname)
-	gresille_signoff = $sympa_gresille.get_signoff2(listname)
+	gresille_signoff = $sympa_gresille.get_signoff(listname)
 
 	# drop subscription requests older than the log of sign-off span (we do
 	# here conservative adds: meaning we do not add unless we are sure the
