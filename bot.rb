@@ -71,7 +71,7 @@ def synchronize(listname)
 	if not new_emails.empty?
 		puts '" new users:'
 		new_emails.each do |email|
-#			$sympa_gresille.add(listname=listname, email=email)
+			$sympa_gresille.add(listname=listname, email=email)
 			puts email
 		end
 	else
