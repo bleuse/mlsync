@@ -74,19 +74,7 @@ class Sympa
 	end
 
 
-	def dump_logs(listname)
-		request = HTTPI::Request.new
-		request.url = @base_url
-		request.set_cookies(@session)
-		request.body = {
-			list: listname,
-			action: 'viewlogs',
-			target_type: 'target_email',
-		}
-
-		response = HTTPI::post(request)
-		html_doc = Nokogiri::HTML(response.body)
-
+	def dump_logs(listname, chunksize=250)
 		# parsing of logs is hardcoded here, maybe there is a better
 		# way to do it… hackish?
 		_columns = [
@@ -101,20 +89,42 @@ class Sympa
 			[:ip,      'td[10]/text()']
 		]
 
-		log_table =
-			html_doc.xpath('//table[@summary="logs table"]/tr')
-		logs = log_table.map do |row|
-			detail = {}
-			_columns.each do |name, xpath|
-				value = row.at(xpath).to_s.strip
-				detail[name] = value unless value.empty?
+		pagenum = 1
+		logs = []
+
+		loop do
+			# build request for page pagenum
+			request = HTTPI::Request.new
+			request.url = "#{@base_url}/viewlogs/#{listname}/#{pagenum}/#{chunksize}/email"
+			request.set_cookies(@session)
+
+			# retrieve raw html
+			response = HTTPI::get(request)
+			html_doc = Nokogiri::HTML(response.body)
+
+			# exit if there are no logs (no more pages)
+			break if html_doc.at('//div[@id="ErrorBlock"]')
+
+			# parse raw logs
+			raw_logs = html_doc.xpath('//table[@summary="logs table"]/tr')
+			parsed_logs = raw_logs.map do |row|
+				detail = {}
+				_columns.each do |name, xpath|
+					value = row.at(xpath).to_s.strip
+					detail[name] = value unless value.empty?
+				end
+				detail unless detail.empty?
 			end
-			detail unless detail.empty?
-		end
-		logs.compact!
-		logs.map do |row|
-			row[:date] = parse_date(row[:date]) if row[:date]
-			row[:action] = row[:action].to_sym if row[:action]
+			parsed_logs.compact!
+			parsed_logs.map do |row|
+				row[:date] = parse_date(row[:date]) if row[:date]
+				row[:action] = row[:action].to_sym if row[:action]
+			end
+
+			# gather new logs
+			logs += parsed_logs
+
+			pagenum += 1
 		end
 
 		return logs
@@ -122,15 +132,6 @@ class Sympa
 
 
 	def get_signoff(listname)
-		signoff = dump_logs(listname)
-		signoff.select!{|row| [:del, :signoff].include? row[:action]}
-		signoff.map!{|row| row[:email]}
-
-		return signoff
-	end
-
-
-	def get_signoff2(listname)
 		raw_logs = dump_logs(listname)
 		valid_after = raw_logs.min{|a,b| a[:date] <=> b[:date]}[:date]
 		off = raw_logs.select do |row|
