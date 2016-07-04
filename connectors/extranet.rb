@@ -17,9 +17,8 @@ class Extranet
 	class ExtranetError < StandardError; end
 
 
-	def initialize(base_url, year)
+	def initialize(base_url)
 		@base_url = base_url
-		@year = year
 		@session = nil
 		HTTPI.log = false
 	end
@@ -27,7 +26,7 @@ class Extranet
 
 	def login(login, passwd)
 		session_req = HTTPI::Request.new
-		session_req.url = "#{@base_url}/#{@year}/Effectifs/accueil.php"
+		session_req.url = "#{@base_url}/app/Effectifs/accueil.php"
 		session_req.body = {
 			str_action: 'login',
 			str_login: login,
@@ -43,7 +42,7 @@ class Extranet
 	def dump_members()
 		# retrieve extranet export
 		members_req = HTTPI::Request.new
-		members_req.url = "#{@base_url}/#{@year}/Effectifs/report_manager.php"
+		members_req.url = "#{@base_url}/app/Effectifs/report_manager.php"
 		members_req.body = {
 			sid: @session,
 			report_name: 'specExp01',

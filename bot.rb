@@ -12,7 +12,7 @@ require_relative 'helpers/patches/hash'
 $sympa_gresille = Sympa.new($gresille_url)
 $sympa_gresille.login(login=$gresille_login, passwd=$gresille_passwd)
 
-$extranet_ffcam = Extranet.new(url=$ffcam_url, year=$ffcam_year)
+$extranet_ffcam = Extranet.new(url=$ffcam_url)
 $extranet_ffcam.login(login=$ffcam_login, passwd=$ffcam_passwd)
 
 
