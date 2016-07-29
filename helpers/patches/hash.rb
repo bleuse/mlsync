@@ -1,6 +1,7 @@
-#! /usr/bin/env ruby
 # encoding: utf-8
 
+# Copyright © 2016
+# Contributed by Raphaël Bleuse <raphael@bleuse.net>
 
 class Hash
 	def slice(*keys)

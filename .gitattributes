@@ -2,5 +2,3 @@
 .gitignore export-ignore
 .gitattributes export-ignore
 
-# development files irrelevant for export
-*.TODO export-ignore

@@ -1,0 +1,14 @@
+- Enhance configuration files format (see references below)
+  - https://docs.ansible.com/ansible/YAMLSyntax.html
+  - https://www.practicingruby.com/articles/configurable-applications-2
+  - https://innovativethought.net/2009/01/02/making-configuration-files-with-yaml-revised/
+  - http://rubyforadmins.com/config-files
+
+- Add tests
+
+- Package program properly
+
+- Make synchronisation more generic
+  - have a system of connectors allowing to fetch / push data
+  - define update/sync semantics
+
